@@ -1,5 +1,41 @@
 import Note from "../models/noteModel.js";
 
+
+
+// @desc    Get all notes for the logged-in user
+// @route   GET /api/notes
+// @access  Private
+
+export async function getNotes(req, res) {
+  try {
+
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized.",
+      });
+    }
+
+    const notes = await Note.find({
+      user: req.user._id,
+    })
+      .select("title content")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      notes,
+    });
+  } catch (error) {
+    console.error("Get Notes Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error.",
+    });
+  }
+}
+
 // @desc    Create a new note
 // @route   POST /api/notes
 // @access  Private
@@ -112,30 +148,6 @@ export async function deleteNote(req, res) {
     });
   } catch (error) {
     console.error("Delete Note Error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error.",
-    });
-  }
-}
-
-// @desc    Get all notes for the logged-in user
-// @route   GET /api/notes
-// @access  Private
-export async function getNotes(req, res) {
-  try {
-    const notes = await Note.find({
-      user: req.user._id,
-    }).sort({ createdAt: -1 });
-
-    return res.status(200).json({
-      success: true,
-      count: notes.length,
-      notes,
-    });
-  } catch (error) {
-    console.error("Get Notes Error:", error);
 
     return res.status(500).json({
       success: false,

@@ -1,4 +1,4 @@
-const Navbar = () => {
+const Navbar = ({ setNewNote, setEditingNote }) => {
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
@@ -6,7 +6,7 @@ const Navbar = () => {
           InkFlow
         </h1>
 
-        <button className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-indigo-700 active:scale-95">
+        <button onClick={() => {setNewNote(true); setEditingNote(null)}} className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-indigo-700 active:scale-95">
           + New Note
         </button>
       </div>
