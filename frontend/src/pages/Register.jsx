@@ -23,7 +23,7 @@ const Register = () => {
       navigate("/");
 
     } catch (error) {
-      console.error(error);
+      console.error("Register Error:", error);
     }
   };
 
