@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import { useNavigate } from "react-router-dom";
 
 import Navbar from "../components/Navbar";
 import NoteCard from "../components/NoteCard";
@@ -7,6 +8,8 @@ import NewNote from "../components/NewNote";
 import ReadNote from "../components/ReadNote";
 
 const Home = () => {
+  const navigate = useNavigate();
+
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -14,6 +17,13 @@ const Home = () => {
   const [selectedNote, setSelectedNote] = useState(null);
 
   const [editingNote, setEditingNote] = useState(null);
+
+  const token = localStorage.getItem("token");
+  console.log(token);
+
+  if (!token) {
+    navigate("/login");
+  }
 
   useEffect(() => {
     getNotes();
