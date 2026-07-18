@@ -291,8 +291,8 @@ Some of the challenges I solved while building InkFlow:
 **Anfas**
 
 - GitHub: https://github.com/Anfas01
-- LinkedIn: *(Add your LinkedIn profile)*
-- Portfolio: *(Add your portfolio website when available)*
+- LinkedIn: http://www.linkedin.com/in/-anfas-m
+- Portfolio: https://anfas01-github-io.vercel.app
 
 ---
 
