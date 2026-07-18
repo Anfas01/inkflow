@@ -1,25 +1,16 @@
 import Note from "../models/noteModel.js";
-
-
+import mongoose from "mongoose";
 
 // @desc    Get all notes for the logged-in user
 // @route   GET /api/notes
 // @access  Private
-
 export async function getNotes(req, res) {
   try {
-
-    if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized.",
-      });
-    }
-
+    // The authMiddleware already ensures req.user exists.
     const notes = await Note.find({
       user: req.user._id,
     })
-      .select("title content")
+      .select("title content createdAt updatedAt")
       .sort({ createdAt: -1 });
 
     return res.status(200).json({
@@ -29,10 +20,7 @@ export async function getNotes(req, res) {
   } catch (error) {
     console.error("Get Notes Error:", error);
 
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error.",
-    });
+    return res.status(500).json({ success: false, message: "Internal server error." });
   }
 }
 
@@ -44,13 +32,17 @@ export async function createNote(req, res) {
     let { title, content } = req.body;
 
     title = title?.trim();
-    content = content?.trim();
+    content = content?.trim(); // Allow empty content, but not empty title.
 
-    if (!title || !content) {
-      return res.status(400).json({
-        success: false,
-        message: "Title and content are required.",
-      });
+    if (!title) {
+      return res.status(400).json({ success: false, message: "Title is required." });
+    }
+
+    if (title.length > 140) {
+      return res.status(400).json({ success: false, message: "Title must be under 140 characters." });
+    }
+    if (content && content.length > 20000) {
+      return res.status(400).json({ success: false, message: "Content must be under 20,000 characters." });
     }
 
     const note = await Note.create({
@@ -67,10 +59,7 @@ export async function createNote(req, res) {
   } catch (error) {
     console.error("Create Note Error:", error);
 
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error.",
-    });
+    return res.status(500).json({ success: false, message: "Internal server error." });
   }
 }
 
@@ -85,16 +74,22 @@ export async function updateNote(req, res) {
     content = content?.trim();
 
     if (!title && !content) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide a title or content to update.",
-      });
+      return res.status(400).json({ success: false, message: "Please provide a title or content to update." });
     }
 
-    const note = await Note.findOne({
-      _id: req.params.id,
-      user: req.user._id,
-    });
+    if (title && title.length > 140) {
+      return res.status(400).json({ success: false, message: "Title must be under 140 characters." });
+    }
+    if (content && content.length > 20000) {
+      return res.status(400).json({ success: false, message: "Content must be under 20,000 characters." });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({ success: false, message: "Note not found." });
+    }
+
+    // Find and update in one atomic operation
+    const note = await Note.findOneAndUpdate({ _id: req.params.id, user: req.user._id }, { title, content }, { new: true });
 
     if (!note) {
       return res.status(404).json({
@@ -102,11 +97,6 @@ export async function updateNote(req, res) {
         message: "Note not found.",
       });
     }
-
-    if (title) note.title = title;
-    if (content) note.content = content;
-
-    await note.save();
 
     return res.status(200).json({
       success: true,
@@ -116,10 +106,7 @@ export async function updateNote(req, res) {
   } catch (error) {
     console.error("Update Note Error:", error);
 
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error.",
-    });
+    return res.status(500).json({ success: false, message: "Internal server error." });
   }
 }
 
@@ -128,19 +115,15 @@ export async function updateNote(req, res) {
 // @access  Private
 export async function deleteNote(req, res) {
   try {
-    const note = await Note.findOne({
-      _id: req.params.id,
-      user: req.user._id,
-    });
-
-    if (!note) {
-      return res.status(404).json({
-        success: false,
-        message: "Note not found.",
-      });
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({ success: false, message: "Note not found." });
     }
 
-    await note.deleteOne();
+    const result = await Note.deleteOne({ _id: req.params.id, user: req.user._id });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ success: false, message: "Note not found or you don't have permission to delete it." });
+    }
 
     return res.status(200).json({
       success: true,
@@ -148,41 +131,6 @@ export async function deleteNote(req, res) {
     });
   } catch (error) {
     console.error("Delete Note Error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error.",
-    });
-  }
-}
-
-// @desc    Get a single note
-// @route   GET /api/notes/:id
-// @access  Private
-export async function getNote(req, res) {
-  try {
-    const note = await Note.findOne({
-      _id: req.params.id,
-      user: req.user._id,
-    });
-
-    if (!note) {
-      return res.status(404).json({
-        success: false,
-        message: "Note not found.",
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      note,
-    });
-  } catch (error) {
-    console.error("Get Note Error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error.",
-    });
+    return res.status(500).json({ success: false, message: "Internal server error." });
   }
 }

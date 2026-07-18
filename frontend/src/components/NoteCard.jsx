@@ -1,55 +1,22 @@
-const NoteCard = ({ note, onOpen, onDelete, onEdit }) => {
-  return (
-    <div
-      onClick={onOpen}
-      className="flex cursor-pointer flex-col justify-between rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
-    >
-      {/* Title */}
-      <div>
-        <h2 className="mb-2 text-xl font-semibold text-gray-800">
-          {note.title}
-        </h2>
+import { Edit3, Trash2 } from "lucide-react";
+import IconButton from "./ui/IconButton";
 
-        {/* Content */}
-        <p className="line-clamp-4 text-gray-600">
-          {note.content}
-        </p>
+const formatDate = (date) => new Intl.DateTimeFormat("en-IN", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(date));
+
+const NoteCard = ({ note, onOpen, onDelete, onEdit }) => (
+  <article className="group relative flex min-h-56 flex-col rounded-lg border border-slate-200 bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
+    <button type="button" onClick={onOpen} className="focus-ring -m-1 flex flex-1 flex-col rounded-sm p-1 text-left">
+      <h2 className="line-clamp-2 text-base font-semibold leading-6 text-slate-950">{note.title}</h2>
+      <p className="mt-3 line-clamp-5 whitespace-pre-wrap text-sm leading-6 text-slate-600">{note.content}</p>
+    </button>
+    <footer className="mt-5 flex items-center justify-between border-t border-slate-100 pt-3">
+      <time dateTime={note.createdAt} className="text-xs text-slate-500">{formatDate(note.createdAt)}</time>
+      <div className="flex items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+        <IconButton label={`Edit ${note.title}`} onClick={() => onEdit(note)} className="size-8"><Edit3 className="size-3.5" /></IconButton>
+        <IconButton label={`Delete ${note.title}`} onClick={() => onDelete(note)} className="size-8 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="size-3.5" /></IconButton>
       </div>
-
-      {/* Footer */}
-      <div className="mt-6 flex items-center justify-between border-t border-gray-100 pt-4">
-        <span className="text-sm text-gray-500">
-          {new Date(note.createdAt).toLocaleDateString("en-IN", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-          })}
-        </span>
-
-        <div className="flex gap-2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(note);
-            }}
-            className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-600"
-          >
-            Edit
-          </button>
-
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(note._id);
-            }}
-            className="rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-600"
-          >
-            Delete
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+    </footer>
+  </article>
+);
 
 export default NoteCard;

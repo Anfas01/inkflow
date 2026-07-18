@@ -3,8 +3,6 @@ import bcrypt from "bcrypt";
 import generateToken from "../lib/token.js";
 import User from "../models/userModel.js";
 
-
-
 export async function registerUser(req, res) {
   try {
     let { name, email, password } = req.body;
@@ -14,28 +12,16 @@ export async function registerUser(req, res) {
     email = email?.trim().toLowerCase();
     password = password?.trim();
 
-    // Validate required fields
     if (!name || !email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide all required fields.",
-      });
+      return res.status(400).json({ success: false, message: "Please provide all required fields." });
     }
 
-    // Validate email
     if (!validator.isEmail(email)) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide a valid email address.",
-      });
+      return res.status(400).json({ success: false, message: "Please provide a valid email address." });
     }
 
-    // Validate password length
     if (password.length < 6) {
-      return res.status(400).json({
-        success: false,
-        message: "Password must be at least 6 characters long.",
-      });
+      return res.status(400).json({ success: false, message: "Password must be at least 6 characters long." });
     }
 
     // Check if user already exists
@@ -43,8 +29,7 @@ export async function registerUser(req, res) {
 
     if (existingUser) {
       return res.status(409).json({
-        success: false,
-        message: "User already exists.",
+        success: false, message: "An account with this email already exists.",
       });
     }
 
@@ -72,10 +57,7 @@ export async function registerUser(req, res) {
   } catch (error) {
     console.error("Register Error:", error);
 
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error.",
-    });
+    return res.status(500).json({ success: false, message: "Internal server error." });
   }
 }
 
@@ -90,37 +72,22 @@ export async function loginUser(req, res) {
     email = email?.trim().toLowerCase();
     password = password?.trim();
 
-    // Validate required fields
     if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide email and password.",
-      });
+      return res.status(400).json({ success: false, message: "Please provide email and password." });
     }
 
-    // Validate email format
     if (!validator.isEmail(email)) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide a valid email address.",
-      });
+      return res.status(400).json({ success: false, message: "Please provide a valid email address." });
     }
 
     // Find user
     const user = await User.findOne({ email });
 
-    // Don't reveal whether the email exists
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password.",
-      });
-    }
-
     // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
 
-    if (!isMatch) {
+    // Use a single check to prevent timing attacks and avoid revealing if a user exists.
+    if (!user || !isMatch) {
       return res.status(401).json({
         success: false,
         message: "Invalid email or password.",
@@ -140,9 +107,6 @@ export async function loginUser(req, res) {
   } catch (error) {
     console.error("Login Error:", error);
 
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error.",
-    });
+    return res.status(500).json({ success: false, message: "Internal server error." });
   }
 }

@@ -6,11 +6,13 @@ const noteSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      maxlength: 140,
     },
 
     content: {
       type: String,
       required: true,
+      maxlength: 20000,
     },
 
     user: {
